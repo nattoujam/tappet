@@ -7,7 +7,11 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Footer, Header, Label, ListItem, ListView, Static
 
 from tcurl.models import RequestSet
-from tcurl.storage import create_request_set, delete_request_set, load_request_sets
+from tcurl.storage.requests import (
+    create_request_set,
+    delete_request_set,
+    load_request_sets,
+)
 from tcurl.utils.editor import open_in_editor
 
 

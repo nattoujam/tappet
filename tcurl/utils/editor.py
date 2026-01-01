@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import os
 import shlex
 import subprocess
 from pathlib import Path
 
-from tcurl.storage import get_editor_command
+from tcurl.storage.config import get_editor_command
 
 
 def open_in_editor(path: Path) -> bool:

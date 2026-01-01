@@ -6,47 +6,35 @@ from typing import Any, Dict, List, Optional
 import yaml
 
 from tcurl.models import RequestSet, Variable
+from tcurl.storage.config import ensure_config
+from tcurl.storage.paths import REQUESTS_DIR
 
-CONFIG_DIR = Path.home() / ".config" / "nattoujam" / "tcurl"
-REQUESTS_DIR = CONFIG_DIR / "requests"
-CONFIG_PATH = CONFIG_DIR / "config.yaml"
+SAMPLE_REQUEST = {
+    "name": "Example Request",
+    "description": "Sample request created on first run",
+    "method": "POST",
+    "url": "https://api.example.com/users",
+    "headers": {"Content-Type": "application/json"},
+    "body": '{\n  "name": "$1",\n  "email": "$2"\n}\n',
+    "variables": [
+        {"name": "Name", "placeholder": "e.g. Jane Doe"},
+        {"name": "Email", "placeholder": "e.g. jane@example.com"},
+    ],
+}
 
 
-def ensure_storage() -> None:
+def ensure_requests_dir() -> None:
+    ensure_config()
     REQUESTS_DIR.mkdir(parents=True, exist_ok=True)
-
-    if not CONFIG_PATH.exists():
-        default_config = {
-            "http": {"timeout": 10},
-            "editor": "vim",
-            "ui": {"theme": "default"},
-        }
-        CONFIG_PATH.write_text(
-            yaml.safe_dump(default_config, sort_keys=False),
-            encoding="utf-8",
-        )
-
     if not any(REQUESTS_DIR.glob("*.y*ml")):
-        sample_request = {
-            "name": "Example Request",
-            "description": "Sample request created on first run",
-            "method": "POST",
-            "url": "https://api.example.com/users",
-            "headers": {"Content-Type": "application/json"},
-            "body": '{\n  "name": "$1",\n  "email": "$2"\n}\n',
-            "variables": [
-                {"name": "Name", "placeholder": "e.g. Jane Doe"},
-                {"name": "Email", "placeholder": "e.g. jane@example.com"},
-            ],
-        }
         (REQUESTS_DIR / "example.yaml").write_text(
-            yaml.safe_dump(sample_request, sort_keys=False),
+            yaml.safe_dump(SAMPLE_REQUEST, sort_keys=False),
             encoding="utf-8",
         )
 
 
 def load_request_sets() -> List[RequestSet]:
-    ensure_storage()
+    ensure_requests_dir()
     request_sets: List[RequestSet] = []
 
     for path in sorted(REQUESTS_DIR.glob("*.y*ml")):
@@ -58,25 +46,8 @@ def load_request_sets() -> List[RequestSet]:
     return request_sets
 
 
-def load_config() -> Dict[str, Any]:
-    ensure_storage()
-    if not CONFIG_PATH.exists():
-        return {}
-    with CONFIG_PATH.open("r", encoding="utf-8") as handle:
-        data = yaml.safe_load(handle)
-    return data if isinstance(data, dict) else {}
-
-
-def get_editor_command() -> str:
-    config = load_config()
-    editor = config.get("editor")
-    if isinstance(editor, str) and editor.strip():
-        return editor.strip()
-    return "vim"
-
-
 def create_request_set(name: Optional[str] = None) -> RequestSet:
-    ensure_storage()
+    ensure_requests_dir()
     file_path = _next_request_path()
     request_name = name or "New Request"
     template = {
@@ -133,18 +104,6 @@ def _parse_request_set(data: Dict[str, Any], path: Path) -> RequestSet:
     )
 
 
-def _next_request_path() -> Path:
-    base = REQUESTS_DIR / "new_request.yaml"
-    if not base.exists():
-        return base
-    counter = 1
-    while True:
-        candidate = REQUESTS_DIR / f"new_request_{counter}.yaml"
-        if not candidate.exists():
-            return candidate
-        counter += 1
-
-
 def _parse_variables(raw_vars: Any) -> List[Variable]:
     if not isinstance(raw_vars, list):
         return []
@@ -159,3 +118,15 @@ def _parse_variables(raw_vars: Any) -> List[Variable]:
             continue
         variables.append(Variable(name=name, placeholder=placeholder))
     return variables
+
+
+def _next_request_path() -> Path:
+    base = REQUESTS_DIR / "new_request.yaml"
+    if not base.exists():
+        return base
+    counter = 1
+    while True:
+        candidate = REQUESTS_DIR / f"new_request_{counter}.yaml"
+        if not candidate.exists():
+            return candidate
+        counter += 1
