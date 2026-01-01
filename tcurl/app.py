@@ -3,10 +3,11 @@ from typing import Optional
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal
-from textual.widgets import Footer, Header, Label, ListItem, ListView, Static
+from textual.screen import ModalScreen
+from textual.widgets import Button, Footer, Header, Label, ListItem, ListView, Static
 
 from tcurl.models import RequestSet
-from tcurl.storage import create_request_set, load_request_sets
+from tcurl.storage import create_request_set, delete_request_set, load_request_sets
 
 
 class RequestListWidget(ListView):
@@ -17,10 +18,80 @@ class DetailPanelWidget(Static):
     """Right panel for request details and response."""
 
 
+class ConfirmDeleteScreen(ModalScreen[bool]):
+    CSS = """
+    ConfirmDeleteScreen {
+        align: center middle;
+    }
+
+    #confirm-dialog {
+        layout: vertical;
+        width: auto;
+        min-width: 32;
+        max-width: 60;
+        height: auto;
+        padding: 1 2;
+        border: solid $primary;
+        background: $panel;
+        align: center middle;
+    }
+
+    #confirm-message {
+        text-align: center;
+        content-align: center middle;
+    }
+
+    #confirm-buttons {
+        margin-top: 1;
+        width: auto;
+        height: auto;
+        align: center middle;
+    }
+
+    #confirm-buttons Button {
+        margin: 0 1;
+    }
+    """
+
+    BINDINGS = [
+        ("y", "confirm", "Yes"),
+        ("n", "cancel", "No"),
+        ("escape", "cancel", "No"),
+    ]
+
+    def __init__(self, message: str) -> None:
+        super().__init__()
+        self.message = message
+
+    def compose(self) -> ComposeResult:
+        yield Container(
+            Static(self.message, id="confirm-message"),
+            Horizontal(
+                Button("Yes", id="confirm-yes"),
+                Button("No", id="confirm-no"),
+                id="confirm-buttons",
+            ),
+            id="confirm-dialog",
+        )
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "confirm-yes":
+            self.dismiss(True)
+        else:
+            self.dismiss(False)
+
+    def action_confirm(self) -> None:
+        self.dismiss(True)
+
+    def action_cancel(self) -> None:
+        self.dismiss(False)
+
+
 class TcurlApp(App):
     BINDINGS = [
         ("q", "quit", "Quit"),
         ("n", "new_request", "New"),
+        ("d", "delete_request", "Delete"),
     ]
 
     CSS = """
@@ -77,12 +148,34 @@ class TcurlApp(App):
         created = create_request_set()
         self._reload_request_list(select_path=created.file_path)
 
+    def action_delete_request(self) -> None:
+        if not self.request_sets:
+            return
+        request_list = self.query_one(RequestListWidget)
+        if request_list.highlighted_child is None:
+            return
+        if request_list.index >= len(self.request_sets):
+            return
+
+        request_set = self.request_sets[request_list.index]
+        message = f"{request_set.name}を削除しますか？ (y/n)"
+        self.push_screen(
+            ConfirmDeleteScreen(message),
+            lambda confirmed: self._delete_request(request_set, confirmed),
+        )
+
     def _show_request_details(self, request_set: Optional[RequestSet]) -> None:
         detail_panel = self.query_one(DetailPanelWidget)
         if request_set is None:
             detail_panel.update("Request Details\n\n(No request selected)")
             return
         detail_panel.update(self._format_request_details(request_set))
+
+    def _delete_request(self, request_set: RequestSet, confirmed: Optional[bool]) -> None:
+        if not confirmed:
+            return
+        delete_request_set(request_set)
+        self._reload_request_list()
 
     def _reload_request_list(self, select_path: Optional[Path] = None) -> None:
         request_list = self.query_one(RequestListWidget)

@@ -78,6 +78,15 @@ def create_request_set(name: Optional[str] = None) -> RequestSet:
     return _parse_request_set(template, file_path)
 
 
+def delete_request_set(request_set: RequestSet) -> bool:
+    if request_set.file_path is None:
+        return False
+    if not request_set.file_path.exists():
+        return False
+    request_set.file_path.unlink()
+    return True
+
+
 def _read_yaml(path: Path) -> Dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:
         data = yaml.safe_load(handle)
