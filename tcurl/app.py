@@ -17,6 +17,10 @@ from tcurl.utils.editor import open_in_editor
 
 class RequestListWidget(ListView):
     """Left panel for request sets."""
+    BINDINGS = [
+        ("j", "cursor_down", "Down"),
+        ("k", "cursor_up", "Up"),
+    ]
 
 
 class DetailPanelWidget(Static):
@@ -138,6 +142,7 @@ class TcurlApp(App):
 
     def on_mount(self) -> None:
         self._reload_request_list()
+        self.query_one(RequestListWidget).focus()
 
     def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
         if not self.request_sets:
