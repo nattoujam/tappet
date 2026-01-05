@@ -89,9 +89,7 @@ class RequestSetStore:
         if not self._responses:
             return
         valid_keys = {self._response_key(item) for item in self.items}
-        self._responses = {
-            key: response for key, response in self._responses.items() if key in valid_keys
-        }
+        self._responses = {key: response for key, response in self._responses.items() if key in valid_keys}
 
     def _response_key(self, request_set: RequestSet) -> str:
         if request_set.file_path is not None:

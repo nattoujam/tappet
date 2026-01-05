@@ -142,9 +142,7 @@ class DetailPanelWidget(Static):
         self.update(self._format_request_details(request_set))
 
     def _format_request_details(self, request_set: RequestSet) -> str:
-        headers_text = "\n".join(
-            f"{key}: {value}" for key, value in request_set.headers.items()
-        )
+        headers_text = "\n".join(f"{key}: {value}" for key, value in request_set.headers.items())
         if not headers_text:
             headers_text = "(none)"
         body_text = request_set.body if request_set.body else "(empty)"
@@ -179,9 +177,7 @@ class ResponsePanelWidget(VerticalScroll):
         yield Static(id="response-content")
 
     def set_content(self, response: Optional[Response]) -> None:
-        self.query_one("#response-content", Static).update(
-            self._format_response_details(response)
-        )
+        self.query_one("#response-content", Static).update(self._format_response_details(response))
 
     def _format_response_details(self, response: Optional[Response]) -> str:
         if response is None:
@@ -198,9 +194,7 @@ class ResponsePanelWidget(VerticalScroll):
             if response.elapsed_ms is not None:
                 elapsed = f" ({response.elapsed_ms:.0f} ms)"
             status_line = f"Status: {response.status_code}{reason}{elapsed}"
-        headers_text = "\n".join(
-            f"{key}: {value}" for key, value in (response.headers or {}).items()
-        )
+        headers_text = "\n".join(f"{key}: {value}" for key, value in (response.headers or {}).items())
         if not headers_text:
             headers_text = "(none)"
         return (
@@ -221,9 +215,7 @@ class ResponsePanelWidget(VerticalScroll):
             should_format_json = "application/json" in content_type.lower()
             if should_format_json or body_text.strip().startswith(("{", "[")):
                 try:
-                    body_text = json.dumps(
-                        json.loads(body_text), indent=2, ensure_ascii=True
-                    )
+                    body_text = json.dumps(json.loads(body_text), indent=2, ensure_ascii=True)
                 except json.JSONDecodeError:
                     pass
         if not body_text:
@@ -365,9 +357,7 @@ class TcurlApp(App):
         self.store.refresh()
         request_list.focus()
 
-    async def on_request_list_widget_run_requested(
-        self, message: RequestListWidget.RunRequested
-    ) -> None:
+    async def on_request_list_widget_run_requested(self, message: RequestListWidget.RunRequested) -> None:
         request_set = message.request_set
         self.store.set_response(request_set, Response(note="Running..."))
         self._show_request_details(request_set)
