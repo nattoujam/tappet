@@ -10,7 +10,7 @@ async def execute_request(request_set: RequestSet) -> Response:
                 request_set.method,
                 request_set.url,
                 headers=request_set.headers,
-                content=request_set.body,
+                json=request_set.body if request_set.body else None,
             )
     except Exception as exc:
         return Response(error=str(exc))

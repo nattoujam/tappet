@@ -145,7 +145,10 @@ class DetailPanelWidget(Static):
         headers_text = "\n".join(f"{key}: {value}" for key, value in request_set.headers.items())
         if not headers_text:
             headers_text = "(none)"
-        body_text = request_set.body if request_set.body else "(empty)"
+        if request_set.body:
+            body_text = json.dumps(request_set.body, ensure_ascii=True, indent=2)
+        else:
+            body_text = "(empty)"
         description = request_set.description if request_set.description else "-"
         return (
             "Request Details\n\n"

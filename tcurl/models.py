@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -17,7 +17,7 @@ class RequestSet:
     method: str
     url: str
     headers: Dict[str, str]
-    body: Optional[str]
+    body: Optional[Dict[str, Any]]
     description: Optional[str] = ""
     variables: List[Variable] = None
     file_path: Optional[Path] = None

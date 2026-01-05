@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import yaml
 
@@ -10,12 +10,15 @@ from tcurl.storage.config import ensure_config
 from tcurl.storage.paths import REQUESTS_DIR
 
 SAMPLE_REQUEST = {
-    "name": "Example Request",
-    "description": "Sample request created on first run",
-    "method": "POST",
-    "url": "https://api.example.com/users",
+    "name": "New Request",
+    "description": "",
+    "method": "GET",
+    "url": "http://localhost:8000",
     "headers": {"Content-Type": "application/json"},
-    "body": '{\n  "name": "$1",\n  "email": "$2"\n}\n',
+    "body": {
+        "name": "$1",
+        "email": "$2",
+    },
     "variables": [
         {"name": "Name", "placeholder": "e.g. Jane Doe"},
         {"name": "Email", "placeholder": "e.g. jane@example.com"},
@@ -46,24 +49,14 @@ def load_request_sets() -> List[RequestSet]:
     return request_sets
 
 
-def create_request_set(name: Optional[str] = None) -> RequestSet:
+def create_request_set() -> RequestSet:
     ensure_requests_dir()
     file_path = _next_request_path()
-    request_name = name or "New Request"
-    template = {
-        "name": request_name,
-        "description": "",
-        "method": "GET",
-        "url": "https://api.example.com",
-        "headers": {"Content-Type": "application/json"},
-        "body": "",
-        "variables": [],
-    }
     file_path.write_text(
-        yaml.safe_dump(template, sort_keys=False),
+        yaml.safe_dump(SAMPLE_REQUEST, sort_keys=False),
         encoding="utf-8",
     )
-    return _parse_request_set(template, file_path)
+    return _parse_request_set(SAMPLE_REQUEST, file_path)
 
 
 def delete_request_set(request_set: RequestSet) -> bool:
@@ -87,8 +80,13 @@ def _parse_request_set(data: Dict[str, Any], path: Path) -> RequestSet:
     url = str(data.get("url") or "")
     headers = data.get("headers") if isinstance(data.get("headers"), dict) else {}
     body = data.get("body")
-    if body is not None and not isinstance(body, str):
-        body = str(body)
+    if isinstance(body, dict):
+        pass
+    elif isinstance(body, str):
+        parsed = yaml.safe_load(body)
+        body = parsed if isinstance(parsed, dict) else {}
+    else:
+        body = {}
 
     variables = _parse_variables(data.get("variables"))
 
