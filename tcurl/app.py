@@ -25,15 +25,6 @@ class RequestListWidget(ListView):
         ("e", "edit_request", "Edit"),
         ("enter", "run_request", "Run"),
     ]
-    DEFAULT_CSS = """
-    RequestListWidget {
-        border: solid gray;
-    }
-
-    RequestListWidget:focus {
-        border: solid magenta;
-    }
-    """
 
     class RunRequested(Message):
         def __init__(self, request_set: RequestSet) -> None:
@@ -130,16 +121,6 @@ class DetailPanelWidget(Container):
         ("l", "next_tab", "Next Tab"),
         ("right", "next_tab", "Next Tab"),
     ]
-    DEFAULT_CSS = """
-    DetailPanelWidget {
-        border: solid gray;
-        padding: 0 1;
-    }
-
-    DetailPanelWidget:focus {
-        border: solid magenta;
-    }
-    """
 
     def compose(self) -> ComposeResult:
         with TabbedContent(id="detail-tabs", initial="detail-tab-info"):
@@ -216,16 +197,6 @@ class ResponsePanelWidget(Container):
         ("l", "next_tab", "Next Tab"),
         ("right", "next_tab", "Next Tab"),
     ]
-    DEFAULT_CSS = """
-    ResponsePanelWidget {
-        border: solid gray;
-        padding: 0 1;
-    }
-
-    ResponsePanelWidget:focus {
-        border: solid magenta;
-    }
-    """
 
     def compose(self) -> ComposeResult:
         with TabbedContent(id="response-tabs", initial="response-tab-main"):
@@ -305,40 +276,6 @@ class ResponsePanelWidget(Container):
 
 
 class ConfirmDeleteScreen(ModalScreen[bool]):
-    CSS = """
-    ConfirmDeleteScreen {
-        align: center middle;
-    }
-
-    #confirm-dialog {
-        layout: vertical;
-        width: auto;
-        min-width: 32;
-        max-width: 60;
-        height: auto;
-        padding: 1 2;
-        border: solid $primary;
-        background: $panel;
-        align: center middle;
-    }
-
-    #confirm-message {
-        text-align: center;
-        content-align: center middle;
-    }
-
-    #confirm-buttons {
-        margin-top: 1;
-        width: auto;
-        height: auto;
-        align: center middle;
-    }
-
-    #confirm-buttons Button {
-        margin: 0 1;
-    }
-    """
-
     BINDINGS = [
         ("y", "confirm", "Yes"),
         ("n", "cancel", "No"),
@@ -377,39 +314,12 @@ class ConfirmDeleteScreen(ModalScreen[bool]):
 
 
 class TcurlApp(App):
+    CSS_PATH = "themes/default.css"
     BINDINGS = [
         ("q", "quit", "Quit"),
         ("tab", "focus_next", "Next"),
         ("shift+tab", "focus_previous", "Prev"),
     ]
-
-    CSS = """
-    Screen {
-        layout: vertical;
-    }
-
-    #main {
-        height: 1fr;
-    }
-
-    #left-panel {
-        width: 1fr;
-    }
-
-    #right-panel {
-        layout: vertical;
-        width: 3fr;
-        height: 1fr;
-    }
-
-    #detail-panel {
-        height: 1fr;
-    }
-
-    #response-panel {
-        height: 2fr;
-    }
-    """
 
     def __init__(self) -> None:
         super().__init__()
