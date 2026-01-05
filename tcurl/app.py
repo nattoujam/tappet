@@ -146,7 +146,7 @@ class DetailPanelWidget(Static):
         if not headers_text:
             headers_text = "(none)"
         if request_set.body:
-            body_text = json.dumps(request_set.body, ensure_ascii=True, indent=2)
+            body_text = json.dumps(request_set.body, indent=2, ensure_ascii=False)
         else:
             body_text = "(empty)"
         description = request_set.description if request_set.description else "-"
@@ -218,7 +218,7 @@ class ResponsePanelWidget(VerticalScroll):
             should_format_json = "application/json" in content_type.lower()
             if should_format_json or body_text.strip().startswith(("{", "[")):
                 try:
-                    body_text = json.dumps(json.loads(body_text), indent=2, ensure_ascii=True)
+                    body_text = json.dumps(json.loads(body_text), indent=2, ensure_ascii=False)
                 except json.JSONDecodeError:
                     pass
         if not body_text:
