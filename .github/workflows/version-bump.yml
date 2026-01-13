@@ -1,0 +1,95 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "New version (e.g. 0.1.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Validate version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          version = os.environ["VERSION"].strip()
+          if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+            raise SystemExit("Version must be in x.y.z format.")
+
+          text = Path("pyproject.toml").read_text(encoding="utf-8")
+          match = re.search(r'^version\s*=\s*"([^"]+)"\s*$', text, re.MULTILINE)
+          if not match:
+            raise SystemExit("Current version not found in pyproject.toml.")
+          current = match.group(1)
+
+          def parse(v):
+            return tuple(int(p) for p in v.split("."))
+
+          cur = parse(current)
+          new = parse(version)
+          diffs = [n - c for n, c in zip(new, cur)]
+          if any(d < 0 for d in diffs):
+            raise SystemExit("Version must not decrease.")
+          if diffs.count(1) != 1 or any(d not in (0, 1) for d in diffs):
+            raise SystemExit("Exactly one of major/minor/patch must increment by 1.")
+          PY
+
+      - name: Bump version
+        if: ${{ success() }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python -m pip install --upgrade pip poetry
+          poetry version "${VERSION}"
+
+      - name: Commit and push version bump
+        if: ${{ success() }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          git checkout master
+          git pull --ff-only origin master
+          git add pyproject.toml
+          git commit -m "Bump version to ${VERSION}"
+          git push origin master
+
+      - name: Rebase release onto master
+        if: ${{ success() }}
+        run: |
+          git fetch origin release
+          git checkout release
+          git rebase origin/master
+          git push --force-with-lease origin release
+
+      - name: Create GitHub release
+        if: ${{ success() }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.version }}
