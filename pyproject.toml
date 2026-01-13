@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tappet"
-version = "0.1.0"
+version = "0.2.0"
 description = "TUI HTTP Client with request management"
 authors = ["nattoujam <public.kyuuanago@gmail.com>"]
 license = "MIT"
