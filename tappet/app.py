@@ -50,7 +50,7 @@ class RequestListWidget(ListView):
         selected_index: Optional[int] = None
         for index, request_set in enumerate(self.request_sets):
             self.append(ListItem(Label(request_set.name)))
-            if select_set is not None and request_set == select_set:
+            if select_set is not None and request_set.is_same_file(select_set):
                 selected_index = index
 
         if selected_index is None:
@@ -61,7 +61,7 @@ class RequestListWidget(ListView):
         if not self.request_sets or select_set is None:
             return
         for index, request_set in enumerate(self.request_sets):
-            if request_set == select_set:
+            if request_set.is_same_file(select_set):
                 self.index = index
                 break
 

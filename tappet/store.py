@@ -82,19 +82,25 @@ class RequestSetStore:
 
     def _decide_selection(self, select_set: Optional[RequestSet]) -> None:
         if select_set is not None:
-            if self._is_in_items(select_set):
-                self.selected_set = select_set
+            match = self._get_matching_item(select_set)
+            if match:
+                self.selected_set = match
                 return
         if self.selected_set is not None:
-            if self._is_in_items(self.selected_set):
+            match = self._get_matching_item(self.selected_set)
+            if match:
+                self.selected_set = match
                 return
         self.selected_set = self.items[0] if self.items else None
 
     def _is_in_items(self, request_set: RequestSet) -> bool:
+        return self._get_matching_item(request_set) is not None
+
+    def _get_matching_item(self, request_set: RequestSet) -> Optional[RequestSet]:
         for item in self.items:
-            if item == request_set:
-                return True
-        return False
+            if item.is_same_file(request_set):
+                return item
+        return None
 
     def _prune_responses(self) -> None:
         if not self._responses:
