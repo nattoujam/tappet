@@ -248,17 +248,17 @@ class ResponsePanelWidget(Container):
         copy_to_clipboard(self._get_formatted_body(response))
 
     def _get_formatted_body(self, response: Response) -> str:
-        body_text = response.body if response.body else ""
-        if body_text:
-            content_type = ""
-            if response.headers:
-                content_type = response.headers.get("Content-Type", "")
-            should_format_json = "application/json" in content_type.lower()
-            if should_format_json or body_text.strip().startswith(("{", "[")):
-                try:
-                    body_text = json.dumps(json.loads(body_text), indent=2, ensure_ascii=False)
-                except json.JSONDecodeError:
-                    pass
+        body_text = response.body or ""
+        if not body_text:
+            return body_text
+
+        content_type = (response.headers or {}).get("Content-Type", "")
+        should_format_json = "application/json" in content_type.lower()
+        if should_format_json or body_text.strip().startswith(("{", "[")):
+            try:
+                body_text = json.dumps(json.loads(body_text), indent=2, ensure_ascii=False)
+            except json.JSONDecodeError:
+                pass
         return body_text
 
     def _switch_tab(self, offset: int) -> None:
