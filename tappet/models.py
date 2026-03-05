@@ -18,9 +18,7 @@ class RequestSet:
     def is_same_file(self, other: Optional[RequestSet]) -> bool:
         if other is None:
             return False
-        if self.file_path is not None and other.file_path is not None:
-            return self.file_path == other.file_path
-        return self == other
+        return self.file_path == other.file_path
 
 
 @dataclass
