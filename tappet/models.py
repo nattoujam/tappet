@@ -15,6 +15,11 @@ class RequestSet:
     description: Optional[str] = ""
     file_path: Optional[Path] = None
 
+    def is_same_file(self, other: Optional[RequestSet]) -> bool:
+        if other is None:
+            return False
+        return self.file_path == other.file_path
+
 
 @dataclass
 class Response:
