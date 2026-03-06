@@ -128,7 +128,12 @@ class DetailPanelWidget(Container):
         ("left", "prev_tab", "Prev Tab"),
         ("l", "next_tab", "Next Tab"),
         ("right", "next_tab", "Next Tab"),
+        ("c", "copy_request_body", "Copy Body"),
     ]
+
+    def __init__(self, store: RequestSetStore, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.store = store
 
     def compose(self) -> ComposeResult:
         with TabbedContent(id="detail-tabs", initial="detail-tab-info"):
@@ -159,6 +164,13 @@ class DetailPanelWidget(Container):
 
     def action_prev_tab(self) -> None:
         self._switch_tab(-1)
+
+    def action_copy_request_body(self) -> None:
+        request_set = self.store.get_selected()
+        if request_set is None:
+            return
+        if request_set.body:
+            copy_to_clipboard(json.dumps(request_set.body, indent=2, ensure_ascii=False))
 
     def _switch_tab(self, offset: int) -> None:
         tab_ids = ("detail-tab-info", "detail-tab-body", "detail-tab-headers")
@@ -361,7 +373,7 @@ class TcurlApp(App):
             Horizontal(
                 RequestListWidget(self.store, id="left-panel"),
                 Container(
-                    DetailPanelWidget(id="detail-panel"),
+                    DetailPanelWidget(self.store, id="detail-panel"),
                     ResponsePanelWidget(self.store, id="response-panel"),
                     id="right-panel",
                 ),
