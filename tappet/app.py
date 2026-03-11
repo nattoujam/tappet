@@ -171,6 +171,7 @@ class DetailPanelWidget(Container):
             return
         if request_set.body:
             copy_to_clipboard(json.dumps(request_set.body, indent=2, ensure_ascii=False))
+            self.notify("クリップボードにコピーしました")
 
     def _switch_tab(self, offset: int) -> None:
         tab_ids = ("detail-tab-info", "detail-tab-body", "detail-tab-headers")
@@ -258,6 +259,7 @@ class ResponsePanelWidget(Container):
         if response is None:
             return
         copy_to_clipboard(self._get_formatted_body(response))
+        self.notify("クリップボードにコピーしました")
 
     def _get_formatted_body(self, response: Response) -> str:
         body_text = response.body or ""
