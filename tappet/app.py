@@ -353,7 +353,7 @@ class ConfirmDeleteScreen(ModalScreen[bool]):
         self.dismiss(False)
 
 
-class TcurlApp(App):
+class TappetApp(App):
     CSS_PATH = "themes/default.css"
     TITLE = "tappet"
     BINDINGS = [
